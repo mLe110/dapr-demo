@@ -1,7 +1,122 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@inject Services.WorkflowService WorkflowService
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Order Workflows</PageTitle>
 
-<h1>Hello, world!</h1>
+<h2>Order Workflows</h2>
 
-Welcome to your new app.
+<h3>Continue Workflow</h3>
+<EditForm Model="@orderIdModel" OnValidSubmit="ContinueOrder">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="orderId">Order ID</label>
+        <InputText id="orderId" class="form-control mb-3" @bind-Value="orderIdModel.OrderId" />
+    </div>
+
+    <button type="submit" class="btn btn-primary mb-3">Continue Order</button>
+</EditForm>
+
+<h3>Order Form</h3>
+<EditForm Model="@orderModel" OnValidSubmit="StartWorkflow">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="partnerNumber">Business Partner Number</label>
+        <InputText id="partnerNumber" class="form-control mb-3" @bind-Value="orderModel.PartnerNumber" />
+    </div>
+
+    <div class="form-group">
+        <label for="firstname">First Name</label>
+        <InputText id="firstname" class="form-control mb-3" @bind-Value="orderModel.FirstName" />
+    </div>
+
+    <div class="form-group">
+        <label for="lastname">Last Name</label>
+        <InputText id="lastname" class="form-control mb-3" @bind-Value="orderModel.LastName" />
+    </div>
+
+    <div class="form-group">
+        <label for="product">Product</label>
+        <InputText id="product" class="form-control mb-3" @bind-Value="orderModel.Product" />
+    </div>
+
+    <button type="submit" class="btn btn-primary mb-3">Submit</button>
+</EditForm>
+
+<h3>Submitted Orders</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Order Id</th>
+            <th>Business Partner Number</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Product</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in submittedOrders)
+        {
+            <tr>
+                <td>@order.OrderId</td>
+                <td>@order.PartnerNumber</td>
+                <td>@order.FirstName</td>
+                <td>@order.LastName</td>
+                <td>@order.Product</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private OrderModel orderIdModel = new OrderModel();
+    private OrderModel orderModel = new OrderModel();
+    private List<OrderModel> submittedOrders = new List<OrderModel>();
+
+    private async Task ContinueOrder()
+    {
+        Console.WriteLine("ContinueOrder called with OrderId: " + orderIdModel.OrderId);
+
+        if (!string.IsNullOrEmpty(orderIdModel.OrderId))
+        {
+            WorkflowService.MockPartnerUpdateEvent(orderIdModel.OrderId);
+            StateHasChanged();
+        }
+    }
+
+    private async Task StartWorkflow()
+    {
+        Console.WriteLine("StartWorkflow called");
+
+Console.WriteLine("PartnerNumber: " + orderModel.PartnerNumber);
+
+        var orderId = WorkflowService.RunOrderWorkflow(orderModel.PartnerNumber, orderModel.FirstName, orderModel.LastName, orderModel.Product);
+        submittedOrders.Add(new OrderModel
+        {
+            OrderId = orderId,
+            PartnerNumber = orderModel.PartnerNumber,
+            FirstName = orderModel.FirstName,
+            LastName = orderModel.LastName,
+            Product = orderModel.Product,
+        });
+        StateHasChanged();
+    }
+
+    public class OrderIdModel
+    {
+        public string OrderId { get; set; }
+    }
+
+    public class OrderModel
+    {
+        public string? OrderId { get; set; }
+        public string? PartnerNumber { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Product { get; set; }
+    }
+}

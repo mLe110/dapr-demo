@@ -1,8 +1,31 @@
 using dapr_demo.Components;
+using Dapr.Workflow;
+using Workflows;
+using Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDaprWorkflow(options =>
+{
+    options.RegisterWorkflow<OrderWorkflow>();
+
+    options.RegisterActivity<CreateDraftOrderActivity>();
+    options.RegisterActivity<CheckForDuplicateBusinessPartnerActivity>();
+    options.RegisterActivity<UpdateOrderActivity>();
+    options.RegisterActivity<UpdateOrderStatusActivity>();
+});
+
+if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DAPR_GRPC_PORT")))
+{
+    Console.WriteLine("Setting DAPR_GRPC_PORT to 50001");
+    Environment.SetEnvironmentVariable("DAPR_GRPC_PORT", "50001");
+}
+
 // Add services to the container.
+builder.Services.AddDaprClient();
+builder.Services.AddSingleton<DaprWorkflowClient>();
+builder.Services.AddScoped<WorkflowService>();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
