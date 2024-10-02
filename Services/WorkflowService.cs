@@ -39,23 +39,25 @@ namespace Services
             return orderId;
         }
 
-        public async Task MockPartnerUpdateEvent(string orderId)
+        public async Task<string> MockPartnerUpdateEvent(string orderId)
         {
             var random = new Random();
-            var partnerNumber = random.Next(1000000000, 2000000000); // Ensures a 10-digit number
+            var partnerNumber = random.Next(1000000000, 2000000000).ToString(); // Ensures a 10-digit number
 
             _logger.LogInformation($"Generated Partner Number: {partnerNumber}");
 
             var partnerUpdate = new PartnerUpdate
             {
                 OrderId = orderId,
-                SapPartnerNumber = partnerNumber.ToString()
+                SapPartnerNumber = partnerNumber
             };
 
             await _workflowClient.RaiseEventAsync(
                 instanceId: orderId,
                 eventName: "partner-update-event",
                 eventPayload: partnerUpdate);
+
+            return partnerNumber;
         }   
     }
 }

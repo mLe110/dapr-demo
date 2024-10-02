@@ -83,7 +83,15 @@
 
         if (!string.IsNullOrEmpty(orderIdModel.OrderId))
         {
-            WorkflowService.MockPartnerUpdateEvent(orderIdModel.OrderId);
+            var newPartnerNumber = await WorkflowService.MockPartnerUpdateEvent(orderIdModel.OrderId);
+            
+            var orderToUpdate = submittedOrders.FirstOrDefault(o => o.OrderId == orderIdModel.OrderId);
+            if (orderToUpdate != null)
+            {
+                orderToUpdate.PartnerNumber = newPartnerNumber;
+                Console.WriteLine("Updated PartnerNumber for OrderId: " + orderIdModel.OrderId);
+            }
+
             StateHasChanged();
         }
     }
