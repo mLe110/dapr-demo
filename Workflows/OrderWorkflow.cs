@@ -7,12 +7,11 @@ namespace Workflows
     {
         public override async Task<Order> RunAsync(WorkflowContext context, Order order)
         {
-            // TODO demo am ende
-            //Console.WriteLine($"Order start: {order.OrderId}");
+            Console.WriteLine($"Order start: {order.OrderId}"); // Log for info purpose to see the behavior from the append log characteristic that is behind dapr workflow
             var updatedOrder = await context.CallActivityAsync<Order>(
                 nameof(CreateDraftOrderActivity),
                 order);
-            //Console.WriteLine($"Order before check: {order.OrderId}");
+            Console.WriteLine($"Order before check: {order.OrderId}"); // Log for info purpose to see the behavior from the append log characteristic that is behind dapr workflow
 
             if (string.IsNullOrEmpty(updatedOrder.PartnerNumber))
             {
